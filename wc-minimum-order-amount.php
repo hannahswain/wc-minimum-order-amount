@@ -3,7 +3,7 @@
    /*
    Plugin Name: WC Minimum Order Amount
    Description: Add the option for a WooCommerce minimum order amount, as well as the options to change the notification texts for the cart and checkout pages
-   Version: 1.0
+   Version: 1.1
    Author: Hannah Swain
    Author URI: https://hannahswain.eu
    License: GPLv3 or later License

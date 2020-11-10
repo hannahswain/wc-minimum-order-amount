@@ -4,9 +4,9 @@ Contributors: fernashes
 Tags: woocommerce, order, order amount, order total, minimum order, cart
 Requires at least: 4.5.0
 Tested up to: 4.9.8
-Stable tag: 1.0
+Stable tag: 1.1
 WC requires at least: 3.0
-WC tested up to: 3.4.4
+WC tested up to: 5.3.3
 License: GPLv3 or later License
 URI: http://www.gnu.org/licenses/gpl-3.0.html
 Original snippet source: https://docs.woocommerce.com/document/minimum-order-amount/
@@ -31,3 +31,6 @@ This plugin adds the option for a minimum order amount, as well as the options t
 
 = 1.0 2018-08-11 =
  * Initial release
+
+ = 1.1 2020-11-10 =
+ * Tested and bumped version numbers
