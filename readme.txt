@@ -15,7 +15,7 @@ Add the option for a WooCommerce minimum order amount, as well as the options to
 
 == Description ==
 
-This plugin adds the option for a minimum order amount, as well as the options to separately change the notification texts for the cart page
+This plugin adds the option for a minimum order amount, as well as the option change the notification text for the cart page. Customers can't proceed to checkout if the order doesn't meet the minimum order amount.
 
 == Installation ==
 
