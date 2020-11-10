@@ -27,7 +27,7 @@
       $settings[] = array(
         'title' => __( 'Minimum order settings', 'wc_minimum_order_amount' ),
         'type' => 'title',
-        'desc' => 'Set the minimum order amount and adjust notifications',
+        'desc' => 'Set the minimum order amount and adjust notification. If the minimum order amount isn\'t met, the customer won\'t be able to proceed to checkout.',
         'id' => 'wc_minimum_order_settings',
       );
 
@@ -47,13 +47,15 @@
           'title'    => __( 'Cart message', 'woocommerce' ),
           'desc'     => __( 'Show this message if the current order total is less than the defined minimum - for example "50".', 'wc_minimum_order_amount' ),
           'id'       => 'wc_minimum_order_cart_notification',
-          'default'  => 'Your current order total is %s — your order must be at least %s.',
+          'default'  => 'Your current order total is %s — your order must be at least %s. Please adjust before heading to checkout.',
           'type'     => 'text',
           'desc_tip' => true,
           'css'      => 'width:500px;',
       );
 
       // Checkout message
+
+      /* No longer needed because we don't see the checkout message
         $settings[] = array(
           'title'    => __( 'Checkout message', 'woocommerce' ),
           'desc'     => __( 'Show this message if the current order total is less than the defined minimum', 'wc_minimum_order_amount' ),
@@ -63,15 +65,14 @@
           'desc_tip' => true,
           'css'      => 'width:500px;',
         );
-
+        */
       $settings[] = array( 'type' => 'sectionend', 'id' => 'wc_minimum_order_settings' );
       return $settings;
   }
 
 /* Notices and checks */
-
-add_action( 'woocommerce_before_checkout_form', 'hs_wc_minimum_order_amount' );
-add_action( 'woocommerce_before_cart' , 'hs_wc_minimum_order_amount' );
+add_action( 'woocommerce_before_cart', 'hs_wc_minimum_order_amount' );
+add_action( 'woocommerce_review_order_before_payment', 'hs_wc_minimum_order_amount', 11 );
 
 function hs_wc_minimum_order_amount() {
 
@@ -80,26 +81,32 @@ function hs_wc_minimum_order_amount() {
 
       // check if the minimum value has even been set
       if ($minimum) {
-      if ( WC()->cart->total < $minimum ) {
+        if ( WC()->cart->total < $minimum ) {
 
-        if( is_cart() ) {
+          if( is_cart() ) {
 
-            wc_print_notice(
-                sprintf( get_option( 'wc_minimum_order_cart_notification' ),
-                    wc_price( WC()->cart->total ),
-                    wc_price( $minimum )
-                ), 'error'
-            );
+              wc_print_notice(
+                  sprintf( get_option( 'wc_minimum_order_cart_notification' ),
+                      wc_price( WC()->cart->total ),
+                      wc_price( $minimum )
+                  ), 'error'
+              );
+        //  wp_redirect(WC()->cart->get_cart_url());
+          }
 
-        } else {
 
-            wc_print_notice(
-                sprintf( get_option( 'wc_minimum_order_checkout_notification' ) ,
-                    wc_price( WC()->cart->total ),
-                    wc_price( $minimum )
-                ), 'error'
-            );
-                }
+           else {
+              /*
+              wc_add_notice(
+                  sprintf( get_option( 'wc_minimum_order_checkout_notification' ),
+                      wc_price( WC()->cart->total ),
+                      wc_price( $minimum )
+                  ), 'error'
+              ); */
+
+              /* don't go to checkout, stay on the cart until resolved */
+              wp_redirect(WC()->cart->get_cart_url());
+            }
             }
         }
     }
