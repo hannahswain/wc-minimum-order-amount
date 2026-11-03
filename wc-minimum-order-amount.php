@@ -3,7 +3,8 @@
    /*
    Plugin Name: WC Minimum Order Amount
    Description: Add the option for a WooCommerce minimum order amount, as well as the options to change the notification texts for the cart and checkout pages
-   Version: 1.1
+   Version: 2.0
+   Requires PHP: 7.4
    Author: Hannah Swain
    Author URI: https://hannahswain.eu
    License: GPLv3 or later License
@@ -14,6 +15,15 @@
    if ( ! defined( 'ABSPATH' ) ) {
        exit; // Exit if accessed directly
    }
+
+  /* Declare compatibility with order tables and the cart and checkout blocks */
+
+  add_action( 'before_woocommerce_init', function () {
+      if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+          \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+          \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, true );
+      }
+  } );
 
   /* Check if WooCommerce is active */
 
@@ -42,12 +52,24 @@
           'css'      => 'width:70px;',
       );
 
+      // Shipping and tax
+        $settings[] = array(
+          'title'    => __( 'Shipping and tax', 'wc_minimum_order_amount' ),
+          'id'       => 'wc_minimum_order_amount_basis',
+          'default'  => hs_wc_minimum_order_default_basis(),
+          'type'     => 'radio',
+          'options'  => array(
+              'subtotal' => __( 'Use subtotal: don\'t count shipping and tax toward the minimum order amount', 'wc_minimum_order_amount' ),
+              'total'    => __( 'Use total: include shipping and tax in the minimum order amount', 'wc_minimum_order_amount' ),
+          ),
+      );
+
       // Cart message
         $settings[] = array(
           'title'    => __( 'Cart message', 'woocommerce' ),
           'desc'     => __( 'Show this message if the current order total is less than the defined minimum - for example "50".', 'wc_minimum_order_amount' ),
           'id'       => 'wc_minimum_order_cart_notification',
-          'default'  => 'Your current order total is %s — your order must be at least %s. Please adjust before heading to checkout.',
+          'default'  => hs_wc_minimum_order_default_message(),
           'type'     => 'text',
           'desc_tip' => true,
           'css'      => 'width:500px;',
@@ -81,16 +103,13 @@ function hs_wc_minimum_order_amount() {
 
       // check if the minimum value has even been set
       if ($minimum) {
-        if ( WC()->cart->total < $minimum ) {
+        $amount = hs_wc_minimum_order_cart_amount();
+
+        if ( $amount < $minimum ) {
 
           if( is_cart() ) {
 
-              wc_print_notice(
-                  sprintf( get_option( 'wc_minimum_order_cart_notification' ),
-                      wc_price( WC()->cart->total ),
-                      wc_price( $minimum )
-                  ), 'error'
-              );
+              wc_print_notice( hs_wc_minimum_order_message( $amount, $minimum ), 'error' );
         //  wp_redirect(WC()->cart->get_cart_url());
           }
 
@@ -110,4 +129,55 @@ function hs_wc_minimum_order_amount() {
             }
         }
     }
+
+/* Message shown when the minimum isn't met */
+function hs_wc_minimum_order_default_message() {
+      return 'Your current order total is %s — your order must be at least %s. Please adjust before heading to checkout.';
+}
+
+function hs_wc_minimum_order_message( $amount, $minimum ) {
+      return sprintf(
+          get_option( 'wc_minimum_order_cart_notification', hs_wc_minimum_order_default_message() ),
+          wc_price( $amount ),
+          wc_price( $minimum )
+      );
+}
+
+/* Sites that already have a minimum keep counting shipping and tax */
+function hs_wc_minimum_order_default_basis() {
+      return get_option( 'wc_minimum_order_amount_value' ) ? 'total' : 'subtotal';
+}
+
+/* Amount that is compared with the minimum */
+function hs_wc_minimum_order_cart_amount() {
+
+      $cart = WC()->cart;
+
+      if ( 'total' === get_option( 'wc_minimum_order_amount_basis', hs_wc_minimum_order_default_basis() ) ) {
+          return $cart->get_total( 'edit' );
+      }
+
+      $amount = $cart->get_cart_contents_total();
+
+      if ( $cart->display_prices_including_tax() ) {
+          $amount += $cart->get_cart_contents_tax();
+      }
+
+      return $amount;
+}
+
+/* Cart and checkout blocks: refuse the order if the minimum isn't met */
+add_action( 'woocommerce_store_api_cart_errors', 'hs_wc_minimum_order_store_api_check' );
+
+function hs_wc_minimum_order_store_api_check( $errors ) {
+
+      $minimum = get_option( 'wc_minimum_order_amount_value' );
+      $amount  = hs_wc_minimum_order_cart_amount();
+
+      if ( $minimum && $amount < $minimum ) {
+          $message = hs_wc_minimum_order_message( $amount, $minimum );
+
+          $errors->add( 'wc_minimum_order_amount', html_entity_decode( wp_strip_all_tags( $message ) ) );
+      }
+}
 }
