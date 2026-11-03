@@ -1,7 +1,7 @@
 === WC Minimum Order Amount ===
 
 Contributors: fernashes
-Tags: woocommerce, order, order amount, order total, minimum order, cart
+Tags: woocommerce, order amount, order total, minimum order, cart
 Requires at least: 4.5.0
 Tested up to: 7.1.4
 Requires PHP: 7.4
@@ -12,7 +12,7 @@ License: GPLv3 or later License
 URI: http://www.gnu.org/licenses/gpl-3.0.html
 Original snippet source: https://docs.woocommerce.com/document/minimum-order-amount/
 
-Add the option for a WooCommerce minimum order amount, as well as the options to change the notification texts for the cart. If the order amount doesn't meet the minimum, the customer cannot proceed to checkout. Merchants can choose between subtotal and full order total.
+Set a minimum order amount for WooCommerce, based on the subtotal or the total. Works with the classic pages and the cart and checkout blocks.
 
 == Description ==
 
